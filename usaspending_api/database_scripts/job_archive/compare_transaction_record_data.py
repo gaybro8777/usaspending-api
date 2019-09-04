@@ -404,8 +404,6 @@ PROCUREMENT_BROKER_USASPENDING_MAP = OrderedDict(
 
 
 PUBLISHED_AWARD_FINANCIAL_ASSISTANCE = """
-created_at::TIMESTAMP WITHOUT TIME ZONE,
-updated_at::TIMESTAMP WITHOUT TIME ZONE,
 published_award_financial_assistance_id,
 action_date::date::text,
 UPPER(action_type) AS action_type,
@@ -502,8 +500,6 @@ UPPER(high_comp_officer5_full_na) AS high_comp_officer5_full_na
 
 
 TRANSACTION_FABS = """
-created_at::TIMESTAMP WITHOUT TIME ZONE,
-updated_at::TIMESTAMP WITHOUT TIME ZONE,
 published_award_financial_assistance_id,
 action_date::date::text,
 action_type,
@@ -599,8 +595,6 @@ officer_5_name
 """
 
 DETATCHED_AWARD_PROCURMENT = """
-created_at::TIMESTAMP WITHOUT TIME ZONE,
-updated_at::TIMESTAMP WITHOUT TIME ZONE,
 UPPER(piid) AS piid,
 detached_award_procurement_id,
 UPPER(detached_award_proc_unique) AS detached_award_proc_unique,
@@ -903,8 +897,6 @@ UPPER(high_comp_officer5_full_na) AS high_comp_officer5_full_na
 
 
 TRANSACTION_FPDS = """
-created_at::TIMESTAMP WITHOUT TIME ZONE,
-updated_at::TIMESTAMP WITHOUT TIME ZONE,
 piid,
 detached_award_procurement_id,
 detached_award_proc_unique,

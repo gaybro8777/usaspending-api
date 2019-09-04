@@ -51,10 +51,9 @@ def convert_record_to_safe_dict(d):
     for k, v in d.items():
         if v is None:
             new_dict[k] = v
-        elif type(v) not in (str, float, int):
-            new_dict[k] = str(v)
         else:
-            new_dict[k] = v
+            new_dict[k] = str(v).upper()
+
     return new_dict
 
 
@@ -107,9 +106,11 @@ def main(is_fpds, surrogate_key):
 
     for broker, usaspending in mapper.items():
         if (
-            (broker_record_dict[broker] is None and usaspending_record_dict[usaspending] is not None)
+                (broker_record_dict.get(broker, "Sentinel") != "Sentinel" and usaspending_record_dict.get(usaspending, "Sentinel") != "Sentinel")
+                and
+                ((broker_record_dict[broker] is None and usaspending_record_dict[usaspending] is not None)
             or (broker_record_dict[broker] is not None and usaspending_record_dict[usaspending] is None)
-            or (broker_record_dict[broker] != usaspending_record_dict[usaspending])
+            or (broker_record_dict[broker] != usaspending_record_dict[usaspending]))
         ):
             discrepancies += 1
             msg = "-- [{} / {}] Broker: '{}' USAspending: '{}'"
