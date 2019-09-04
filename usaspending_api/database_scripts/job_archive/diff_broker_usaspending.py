@@ -10,6 +10,7 @@ import logging
 import math
 import os
 import psycopg2
+from psycopg2 import extras
 import time
 
 from pathlib import Path
@@ -153,10 +154,11 @@ def runner(transaction_type):
 
                 log("Processing records with IDs ({:,} => {:,})".format(_min, _max), transaction_type)
                 with Timer() as chunk_timer:
-                    with connection.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                    with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
                         cursor.execute(query)
                         for result in cursor.fetchall():
-                            print(result)
+                            for row in result:
+                                print(row)
                     connection.commit()
 
             else:
