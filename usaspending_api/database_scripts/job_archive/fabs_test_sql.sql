@@ -3,8 +3,6 @@ SELECT
     usaspending.published_award_financial_assistance_id AS "broker_surrogate_id",
     usaspending.afa_generated_unique AS "broker_derived_unique_key",
     usaspending.unique_award_key,
-    broker.created_at IS DISTINCT FROM usaspending.created_at::TIMESTAMP WITHOUT TIME ZONE AS created_at,
-    broker.updated_at IS DISTINCT FROM usaspending.updated_at::TIMESTAMP WITHOUT TIME ZONE AS updated_at,
     broker.action_date IS DISTINCT FROM usaspending.action_date::date::text AS action_date,
     broker.action_type IS DISTINCT FROM usaspending.action_type AS action_type,
     broker.assistance_type IS DISTINCT FROM usaspending.assistance_type AS assistance_type,

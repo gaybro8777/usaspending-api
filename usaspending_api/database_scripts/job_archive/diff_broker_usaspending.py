@@ -51,7 +51,7 @@ GLOBALS = {
     "chunk_size": 250000,
     "ending_id": None,
     "fabs": {"min_max_sql": GET_MIN_MAX_FABS_SQL_STRING, "sql": "", "diff_sql_file": "fabs_diff_select.sql"},
-    "fpds": {"min_max_sql": GET_MIN_MAX_FPDS_SQL_STRING, "sql": "", "diff_sql_file": "fpds_diff_select.sql"},
+    "fpds": {"min_max_sql": GET_MIN_MAX_FPDS_SQL_STRING, "sql": "", "diff_sql_file": "fpds_diff_select.sql", "test_sql_file": "fpds_test_sql.sql"},
     "script_dir": Path(__file__).resolve().parent,
     "starting_id": None,
     "temp_table": "temp_dev_3319_problematic_transaction_zito",
@@ -105,7 +105,10 @@ def verify_or_create_table():
 
 
 def read_sql(transaction_type):
-    p = Path(GLOBALS["script_dir"]).joinpath(GLOBALS[transaction_type]["diff_sql_file"])
+    if GLOBALS.get("diagnose",False):
+        p = Path(GLOBALS["script_dir"]).joinpath(GLOBALS[transaction_type]["test_sql_file"])
+    else:
+        p = Path(GLOBALS["script_dir"]).joinpath(GLOBALS[transaction_type]["diff_sql_file"])
     with p.open() as f:
         return "".join(f.readlines())
 
@@ -142,15 +145,30 @@ def runner(transaction_type):
         while _min <= max_id:
             _max = min(_min + GLOBALS["chunk_size"] - 1, max_id)
             progress = (_max - min_id + 1) / total
-            query = "INSERT INTO {table} {sql}".format(
-                table=GLOBALS["temp_table"], sql=func_config["sql"].format(minid=_min, maxid=_max)
-            )
 
-            log("Processing records with IDs ({:,} => {:,})".format(_min, _max), transaction_type)
-            with Timer() as chunk_timer:
-                with connection.cursor() as cursor:
-                    cursor.execute(query)
-                connection.commit()
+            if GLOBALS.get("diagnose", False):
+                query = "{sql}".format(
+                    sql=func_config["sql"].format(minid=_min, maxid=_max)
+                )
+
+                log("Processing records with IDs ({:,} => {:,})".format(_min, _max), transaction_type)
+                with Timer() as chunk_timer:
+                    with connection.cursor() as cursor:
+                        cursor.execute(query)
+                        for result in cursor.fetchall():
+                            print(result)
+                    connection.commit()
+
+            else:
+                query = "INSERT INTO {table} {sql}".format(
+                    table=GLOBALS["temp_table"], sql=func_config["sql"].format(minid=_min, maxid=_max)
+                )
+
+                log("Processing records with IDs ({:,} => {:,})".format(_min, _max), transaction_type)
+                with Timer() as chunk_timer:
+                    with connection.cursor() as cursor:
+                        cursor.execute(query)
+                    connection.commit()
 
             log("---> Iteration Duration: {}".format(chunk_timer.elapsed_as_string), transaction_type)
             log("---> Est. Completion: {}".format(chunk_timer.estimated_remaining_runtime(progress)), transaction_type)
@@ -193,6 +211,7 @@ if __name__ == "__main__":
     parser.add_argument("--min-id", type=int)
     parser.add_argument("--one-type", choices=["fpds", "fabs"])
     parser.add_argument("--recreate-table", action="store_true")
+    parser.add_argument("--diagnose")
     args = parser.parse_args()
 
     GLOBALS["chunk_size"] = args.chunk_size
@@ -202,5 +221,7 @@ if __name__ == "__main__":
     GLOBALS["starting_id"] = args.min_id
     if args.one_type:
         GLOBALS["transaction_types"] = [args.one_type]
+    if args.diagnose:
+        GLOBALS["diagnose"] = True
 
     main()
