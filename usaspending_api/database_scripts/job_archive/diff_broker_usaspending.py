@@ -54,7 +54,7 @@ GLOBALS = {
     "fpds": {"min_max_sql": GET_MIN_MAX_FPDS_SQL_STRING, "sql": "", "diff_sql_file": "fpds_diff_select.sql"},
     "script_dir": Path(__file__).resolve().parent,
     "starting_id": None,
-    "temp_table": "temp_dev_3319_problematic_transaction",
+    "temp_table": "temp_dev_3319_problematic_transaction_zito",
     "transaction_types": ["fabs", "fpds"],
     "usaspending_db": os.environ["DATABASE_URL"],
 }
