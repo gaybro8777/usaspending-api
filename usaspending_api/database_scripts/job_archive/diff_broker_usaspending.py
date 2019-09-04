@@ -158,7 +158,7 @@ def runner(transaction_type):
                         cursor.execute(query)
                         for result in cursor.fetchall():
                             for row in result:
-                                print(row)
+                                print(row)  # Why isn't this printing key value pairs?
                     connection.commit()
 
             else:
