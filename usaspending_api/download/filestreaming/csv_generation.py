@@ -292,25 +292,8 @@ def wait_for_process(process, start_time, download_job):
             time.sleep(WAIT_FOR_PROCESS_SLEEP)
         sleep_count += 1
 
-    if (time.perf_counter() - start_time) >= MAX_VISIBILITY_TIMEOUT or process.exitcode != 0:
-        if process.is_alive():
-            # Process is running for longer than MAX_VISIBILITY_TIMEOUT, kill it
-            write_to_log(
-                message="Attempting to terminate process (pid {})".format(process.pid),
-                download_job=download_job,
-                is_error=True,
-            )
-            process.terminate()
-            e = TimeoutError(
-                "DownloadJob {} lasted longer than {} hours".format(
-                    download_job.download_job_id, str(MAX_VISIBILITY_TIMEOUT / 3600)
-                )
-            )
-        else:
-            # An error occurred in the process
-            e = Exception("Command failed. Please see the logs for details.")
-
-        raise e
+    if process.exitcode != 0:
+        raise Exception("Command failed. Please see the logs for details.")
 
     return time.perf_counter() - log_time
 
