@@ -285,7 +285,7 @@ def wait_for_process(process, start_time, download_job):
 
     # Let the thread run until it finishes (max MAX_VISIBILITY_TIMEOUT), with a buffer of DOWNLOAD_VISIBILITY_TIMEOUT
     sleep_count = 0
-    while process.is_alive() and (time.perf_counter() - start_time) < MAX_VISIBILITY_TIMEOUT:
+    while process.is_alive():
         if sleep_count < 10:
             time.sleep(WAIT_FOR_PROCESS_SLEEP / 5)
         else:
