@@ -44,6 +44,10 @@ class DownloadTransactionCountViewSet(APIView):
         if total_count and total_count > settings.MAX_DOWNLOAD_LIMIT:
             is_over_limit = True
 
-        result = {"transaction_rows_gt_limit": is_over_limit}
+        result = {
+            "transaction_rows_gt_limit": is_over_limit,
+            "calculated_transaction_count": total_count,
+            "maximum_transaction_limit": settings.MAX_DOWNLOAD_LIMIT,
+        }
 
         return Response(result)

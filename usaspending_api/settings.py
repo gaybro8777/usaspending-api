@@ -12,10 +12,10 @@ from django.utils.crypto import get_random_string
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# User-specified limit on downloads should not be permitted beyond this
-MAX_DOWNLOAD_LIMIT = 500000
+# Row-limited download limit
+MAX_DOWNLOAD_LIMIT = 1000000
 
-# User-specified timeout limit for streaming downloads
+# Timeout limit for streaming downloads
 DOWNLOAD_TIMEOUT_MIN_LIMIT = 10
 
 # Default timeout for SQL statements in Django
