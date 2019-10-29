@@ -213,7 +213,10 @@ def parse_source(source, columns, download_job, working_dir, piid, assistance_id
         # Log how many rows we have
         write_to_log(message="Counting rows in CSV", download_job=download_job)
         try:
-            download_job.number_of_rows += count_rows_in_csv_file(filename=source_path, has_header=True)
+            count = count_rows_in_csv_file(filename=source_path, has_header=True)
+            download_job.number_of_rows += count
+            write_to_log(message="count from recent download: {}".format(count), download_job=download_job)
+            write_to_log(message="total for download: {}".format(download_job.number_of_rows), download_job=download_job)
         except Exception:
             write_to_log(message="Unable to obtain CSV line count", is_error=True, download_job=download_job)
         download_job.save()
