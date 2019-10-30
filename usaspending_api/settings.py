@@ -13,7 +13,7 @@ from django.utils.crypto import get_random_string
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Row-limited download limit
-MAX_DOWNLOAD_LIMIT = 1000000
+MAX_DOWNLOAD_LIMIT = 4000000
 
 # Timeout limit for streaming downloads
 DOWNLOAD_TIMEOUT_MIN_LIMIT = 10

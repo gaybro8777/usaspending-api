@@ -136,7 +136,9 @@ def download_service_app(download_job_id):
 
     # Retrieve the data and write to the CSV(s)
     try:
+        start_time = time.perf_counter()
         csv_generation.generate_csvs(download_job=download_job)
+        write_to_log(message="Total time {} for job".format(start_time - time.perf_counter()), download_job=download_job)
     except Exception:
         write_to_log(message="Caught exception", download_job=download_job, is_error=True)
         return 11  # arbitrary positive integer
