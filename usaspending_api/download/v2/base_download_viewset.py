@@ -46,24 +46,6 @@ class BaseDownloadViewSet(APIView):
         json_request["request_type"] = request_type
         ordered_json_request = json.dumps(order_nested_object(json_request))
 
-        # Check if the same request has been called today
-        # TODO!!! Use external_data_load_date to determine data freshness
-        updated_date_timestamp = datetime.strftime(datetime.now(timezone.utc), "%Y-%m-%d")
-        cached_download = (
-            DownloadJob.objects.filter(json_request=ordered_json_request, update_date__gte=updated_date_timestamp)
-            .exclude(job_status_id=JOB_STATUS_DICT["failed"])
-            .values("download_job_id", "file_name")
-            .first()
-        )
-
-        if cached_download and not settings.IS_LOCAL:
-            # By returning the cached files, there should be no duplicates on a daily basis
-            write_to_log(
-                message="Generating file from cached download job ID: {}".format(cached_download["download_job_id"])
-            )
-            cached_filename = cached_download["file_name"]
-            return self.get_download_response(file_name=cached_filename)
-
         request_agency = json_request.get("filters", {}).get("agency", None)
         final_output_zip_name = create_unique_filename(json_request, request_agency)
         download_job = DownloadJob.objects.create(
