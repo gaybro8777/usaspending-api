@@ -29,7 +29,8 @@ class SpendingByGeographyVisualizationViewSet(APIView):
     """
     This route takes award filters, and returns spending by state code, county code, or congressional district code.
     """
-    endpoint_doc = "usaspending_api/api_docs/api_documentation/advanced_award_search/spending_by_geography.md"
+
+    endpoint_doc = "usaspending_api/api_contracts/contracts/v2/search/spending_by_geography.md"
 
     geo_layer = None  # State, county or District
     geo_layer_filters = None  # Specific geo_layers to filter on

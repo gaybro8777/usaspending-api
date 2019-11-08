@@ -2,7 +2,7 @@ from collections import defaultdict
 from decimal import Decimal
 from django.db import models, connection
 
-from usaspending_api.common.helpers.generic_helper import fy
+from usaspending_api.common.helpers.date_helper import fy
 from usaspending_api.common.models import DataSourceTrackedModel
 from usaspending_api.references.models import ToptierAgency
 from usaspending_api.submissions.models import SubmissionAttributes
@@ -80,9 +80,9 @@ class TreasuryAppropriationAccount(DataSourceTrackedModel):
 
     def update_agency_linkages(self):
         self.awarding_toptier_agency = ToptierAgency.objects.filter(
-            cgac_code=self.allocation_transfer_agency_id
+            toptier_code=self.allocation_transfer_agency_id
         ).first()
-        self.funding_toptier_agency = ToptierAgency.objects.filter(cgac_code=self.agency_id).first()
+        self.funding_toptier_agency = ToptierAgency.objects.filter(toptier_code=self.agency_id).first()
 
     @staticmethod
     def generate_tas_rendering_label(ata, aid, typecode, bpoa, epoa, mac, sub):

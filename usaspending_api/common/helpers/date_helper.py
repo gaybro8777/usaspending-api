@@ -70,3 +70,22 @@ def get_date_from_datetime(date_time, **kwargs):
         return date_time.date()
     except Exception:
         return kwargs.get("default", date_time)
+
+
+def fy(raw_date):
+    """Federal fiscal year corresponding to date"""
+
+    if raw_date is None:
+        return None
+
+    if isinstance(raw_date, str):
+        raw_date = parser.parse(raw_date)
+
+    try:
+        result = raw_date.year
+        if raw_date.month > 9:
+            result += 1
+    except AttributeError:
+        raise TypeError("{} needs year and month attributes".format(raw_date))
+
+    return result

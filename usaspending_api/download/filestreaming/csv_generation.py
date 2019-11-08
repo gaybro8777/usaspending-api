@@ -11,6 +11,7 @@ import traceback
 
 from django.conf import settings
 
+from usaspending_api.awards.v2.filters.filter_helpers import add_date_range_comparison_types
 from usaspending_api.awards.v2.lookups.lookups import contract_type_mapping, assistance_type_mapping, idv_type_mapping
 from usaspending_api.common.csv_helpers import count_rows_in_csv_file, partition_large_csv_file
 from usaspending_api.common.exceptions import InvalidParameterException
@@ -26,6 +27,7 @@ from usaspending_api.download.helpers import (
     write_to_download_log as write_to_log,
 )
 from usaspending_api.download.lookups import JOB_STATUS_DICT, VALUE_MAPPINGS
+
 
 DOWNLOAD_VISIBILITY_TIMEOUT = 60 * 10
 MAX_VISIBILITY_TIMEOUT = 60 * 60 * 4
@@ -43,6 +45,8 @@ def generate_csvs(download_job):
     columns = json_request.get("columns", None)
     limit = json_request.get("limit", None)
     piid = json_request.get("piid", None)
+    award_id = json_request.get("award_id")
+    assistance_id = json_request.get("assistance_id")
 
     file_name = start_download(download_job)
     try:
@@ -59,7 +63,7 @@ def generate_csvs(download_job):
         for source in sources:
             # Parse and write data to the file
             download_job.number_of_columns = max(download_job.number_of_columns, len(source.columns(columns)))
-            parse_source(source, columns, download_job, working_dir, piid, zip_file_path, limit)
+            parse_source(source, columns, download_job, working_dir, piid, assistance_id, zip_file_path, limit)
         include_data_dictionary = json_request.get("include_data_dictionary")
         if include_data_dictionary:
             add_data_dictionary_to_zip(working_dir, zip_file_path)
@@ -67,6 +71,7 @@ def generate_csvs(download_job):
         if include_file_description:
             write_to_log(message="Adding file description to zip file")
             file_description = build_file_description(include_file_description["source"], sources)
+            file_description = file_description.replace("[AWARD_ID]", str(award_id))
             file_description_path = save_file_description(
                 working_dir, include_file_description["destination"], file_description
             )
@@ -122,8 +127,18 @@ def get_csv_sources(json_request):
 
         if VALUE_MAPPINGS[download_type]["source_type"] == "award":
             # Award downloads
-            queryset = filter_function(json_request["filters"])
-            award_type_codes = set(json_request["filters"]["award_type_codes"])
+
+            # Use correct date range columns for advanced search
+            # (Will not change anything for keyword search since "time_period" is not provided))
+            filters = add_date_range_comparison_types(
+                json_request["filters"],
+                is_subaward=download_type != "awards",
+                gte_date_type="action_date",
+                lte_date_type="date_signed",
+            )
+
+            queryset = filter_function(filters)
+            award_type_codes = set(filters["award_type_codes"])
 
             if award_type_codes & (set(contract_type_mapping.keys()) | set(idv_type_mapping.keys())):
                 # only generate d1 files if the user is asking for contract data
@@ -139,7 +154,6 @@ def get_csv_sources(json_request):
                 d2_source.queryset = queryset & download_type_table.objects.filter(**d2_filters)
                 csv_sources.append(d2_source)
 
-            verify_requested_columns_available(tuple(csv_sources), json_request.get("columns", []))
         elif VALUE_MAPPINGS[download_type]["source_type"] == "account":
             # Account downloads
             account_source = CsvSource(
@@ -153,10 +167,12 @@ def get_csv_sources(json_request):
             )
             csv_sources.append(account_source)
 
+    verify_requested_columns_available(tuple(csv_sources), json_request.get("columns", []))
+
     return csv_sources
 
 
-def parse_source(source, columns, download_job, working_dir, piid, zip_file_path, limit):
+def parse_source(source, columns, download_job, working_dir, piid, assistance_id, zip_file_path, limit):
     """Write to csv and zip files using the source data"""
     d_map = {
         "d1": "contracts",
@@ -168,9 +184,12 @@ def parse_source(source, columns, download_job, working_dir, piid, zip_file_path
         # Use existing detailed filename from parent file for monthly files
         # e.g. `019_Assistance_Delta_20180917_%s.csv`
         source_name = strip_file_extension(download_job.file_name)
-    elif source.is_for_idv:
+    elif source.is_for_idv or source.is_for_contract:
         file_name_pattern = VALUE_MAPPINGS[source.source_type]["download_name"]
         source_name = file_name_pattern.format(piid=slugify_text_for_file_names(piid, "UNKNOWN", 50))
+    elif source.is_for_assistance:
+        file_name_pattern = VALUE_MAPPINGS[source.source_type]["download_name"]
+        source_name = file_name_pattern.format(assistance_id=slugify_text_for_file_names(assistance_id, "UNKNOWN", 50))
     else:
         source_name = "{}_{}_{}".format(
             source.agency_code, d_map[source.file_type], VALUE_MAPPINGS[source.source_type]["download_name"]

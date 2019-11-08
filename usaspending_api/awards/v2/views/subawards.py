@@ -17,7 +17,8 @@ class SubawardsViewSet(APIView):
     related, optionally, to a specific parent award, or for all parent
     awards if desired.
     """
-    endpoint_doc = "usaspending_api/api_docs/api_documentation/awards/subawards.md"
+
+    endpoint_doc = "usaspending_api/api_contracts/contracts/v2/subawards.md"
 
     subaward_lookup = {
         # "Display Name": "database_column"

@@ -26,7 +26,8 @@ class SpendingByTransactionVisualizationViewSet(APIView):
     """
     This route takes keyword search fields, and returns the fields of the searched term.
     """
-    endpoint_doc = "usaspending_api/api_docs/api_documentation/advanced_award_search/spending_by_transaction.md"
+
+    endpoint_doc = "usaspending_api/api_contracts/contracts/v2/search/spending_by_transaction.md"
 
     @cache_response()
     def post(self, request):
@@ -87,7 +88,8 @@ class TransactionSummaryVisualizationViewSet(APIView):
     """
     This route takes award filters, and returns the number of transactions and summation of federal action obligations.
     """
-    endpoint_doc = "usaspending_api/api_docs/api_documentation/advanced_award_search/transaction_spending_summary.md"
+
+    endpoint_doc = "usaspending_api/api_contracts/contracts/v2/search/transaction_spending_summary.md"
 
     @cache_response()
     def post(self, request):
@@ -124,7 +126,8 @@ class SpendingByTransactionCountVisualizaitonViewSet(APIView):
     """
     This route takes keyword search fields, and returns the fields of the searched term.
     """
-    endpoint_doc = "usaspending_api/api_docs/api_documentation/advanced_award_search/spending_by_transaction_count.md"
+
+    endpoint_doc = "usaspending_api/api_contracts/contracts/v2/search/spending_by_transaction_count.md"
 
     @cache_response()
     def post(self, request):

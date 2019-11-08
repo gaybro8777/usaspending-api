@@ -11,7 +11,8 @@ class SpendingExplorerViewSet(APIView):
     """
     This route sends a request to the backend to retrieve spending data information through various types and filters.
     """
-    endpoint_doc = "usaspending_api/api_docs/api_documentation/spending_explorer.md"
+
+    endpoint_doc = "usaspending_api/api_contracts/contracts/v2/spending.md"
 
     @cache_response()
     def post(self, request):

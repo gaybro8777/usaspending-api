@@ -16,12 +16,14 @@ class CsvSource:
         else:
             agency = ToptierAgency.objects.filter(toptier_agency_id=agency_id).first()
             if agency:
-                self.agency_code = agency.cgac_code
+                self.agency_code = agency.toptier_code
             else:
                 raise InvalidParameterException("Agency with that ID does not exist")
         self._queryset = None
         self.file_name = None
         self.is_for_idv = VALUE_MAPPINGS[source_type].get("is_for_idv", False)
+        self.is_for_contract = VALUE_MAPPINGS[source_type].get("is_for_contract", False)
+        self.is_for_assistance = VALUE_MAPPINGS[source_type].get("is_for_assistance", False)
 
     def __repr__(self):
         return "CsvSource('{}', '{}', '{}', '{}')".format(
@@ -59,7 +61,7 @@ class CsvSource:
         """Given a list of column names requested, returns the ones available in the source"""
         result = self.human_names
         if requested:
-            result = [header for header in requested if header in self.human_names]
+            result = [header for header in requested if header in self.human_names] or result[:1]
 
         # remove headers that we don't have a query path for
         return [header for header in result if header in self.query_paths]

@@ -1,10 +1,10 @@
 import datetime as dt
+import pytest
 import re
 import time
 
-import pytest
-
-from usaspending_api.common.helpers.generic_helper import fy, get_pagination
+from usaspending_api.common.helpers.generic_helper import get_pagination
+from usaspending_api.common.helpers.date_helper import fy
 from usaspending_api.common.helpers.timing_helpers import timer
 
 legal_dates = {
@@ -72,7 +72,7 @@ def test_fy_returns_correct(raw_date, expected_fy):
 
 @pytest.mark.parametrize("not_date", not_dates)
 def test_fy_type_exceptions(not_date):
-    with pytest.raises(TypeError):
+    with pytest.raises(Exception):
         fy(not_date)
 
 

@@ -22,7 +22,6 @@ from usaspending_api.financial_activities.models import (
 from usaspending_api.common.helpers.dict_helpers import upper_case_dict_values
 from usaspending_api.references.models import ObjectClass, RefProgramActivity
 from usaspending_api.submissions.models import SubmissionAttributes
-from usaspending_api.etl.award_helpers import get_award_financial_transaction, get_awarding_agency
 from usaspending_api.etl.helpers import get_fiscal_quarter, get_previous_submission
 from usaspending_api.etl.broker_etl_helpers import dictfetchall, PhonyCursor
 
@@ -303,13 +302,13 @@ def get_submission_attributes(broker_submission_id, submission_data):
         call_command("rm_submission", broker_submission_id)
 
     logger.info("Merging CGAC and FREC columns")
-    submission_data["cgac_code"] = (
+    submission_data["toptier_code"] = (
         submission_data["cgac_code"] if submission_data["cgac_code"] else submission_data["frec_code"]
     )
 
     # Find the previous submission for this CGAC and fiscal year (if there is one)
     previous_submission = get_previous_submission(
-        submission_data["cgac_code"],
+        submission_data["toptier_code"],
         submission_data["reporting_fiscal_year"],
         submission_data["reporting_fiscal_period"],
     )
@@ -354,7 +353,7 @@ def get_submission_attributes(broker_submission_id, submission_data):
     # If there were any submissions which were temporarily modified, reassign the submission
     for conflict in potential_conflicts:
         remapped_previous = get_previous_submission(
-            conflict.cgac_code, conflict.reporting_fiscal_year, conflict.reporting_fiscal_period
+            conflict.toptier_code, conflict.reporting_fiscal_year, conflict.reporting_fiscal_period
         )
         logger.info(
             "New Previous Submission ID for Submission ID {} permanently mapped to {} ".format(
@@ -676,8 +675,6 @@ def load_file_c(submission_attributes, db_cursor, award_financial_frame):
     # rows = row numbers skipped, corresponding to the original row numbers in the file that was submitted
     skipped_tas = {}
 
-    award_financial_frame["txn"] = award_financial_frame.apply(get_award_financial_transaction, axis=1)
-    award_financial_frame["awarding_agency"] = award_financial_frame.apply(get_awarding_agency, axis=1)
     award_financial_frame["object_class"] = award_financial_frame.apply(
         get_or_create_object_class_rw, axis=1, logger=logger
     )
