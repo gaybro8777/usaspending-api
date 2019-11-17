@@ -23,6 +23,7 @@ class Command(BaseCommand):
     help = "Sync USAspending DB FPDS data using Broker for new or modified records and S3 for deleted IDs"
 
     modified_award_ids = []
+    total_records = 0
 
     @staticmethod
     def get_cursor_for_date_query(connection, date, count=False):
@@ -56,9 +57,10 @@ class Command(BaseCommand):
             self.modified_award_ids.extend(stale_awards)
 
         with psycopg2.connect(dsn=get_broker_dsn_string()) as connection:
-            total_records = self.get_cursor_for_date_query(connection, date, True).fetchall()[0][0]
+            self.total_records = self.get_cursor_for_date_query(connection, date, True).fetchall()[0][0]
             records_processed = 0
-            logger.info("{} total records to update".format(total_records))
+
+            logger.info("{} total records to update".format(self.total_records))
             cursor = self.get_cursor_for_date_query(connection, date)
             while True:
                 id_list = cursor.fetchmany(CHUNK_SIZE)
@@ -67,7 +69,7 @@ class Command(BaseCommand):
                 logger.info("Loading batch from date query (size: {})...".format(len(id_list)))
                 self.modified_award_ids.extend(load_ids([row[0] for row in id_list]))
                 records_processed = records_processed + len(id_list)
-                logger.info("{} out of {} processed".format(records_processed, total_records))
+                logger.info("{} out of {} processed".format(records_processed, self.total_records))
 
     @staticmethod
     def next_file_batch_generator(file):
@@ -87,6 +89,7 @@ class Command(BaseCommand):
         with RetrieveFileFromUri(file_path).get_file_object() as file:
             for next_batch in self.next_file_batch_generator(file):
                 id_list = [int(re.search(r"\d+", x).group()) for x in next_batch]
+                self.total_records += len(id_list)
                 logger.info(
                     "Loading next batch from provided file (size: {}, ids {}-{})...".format(
                         len(id_list), id_list[0], id_list[-1]
@@ -152,7 +155,7 @@ class Command(BaseCommand):
 
         if self.modified_award_ids:
             logger.info("cleaning orphaned metadata")
-            destroy_orphans()
+            destroy_orphans(2*self.total_records)  # Every transaction generates two reference locations
             logger.info(
                 "updating award values ({} awards touched by transaction modifications)".format(
                     len(self.modified_award_ids)

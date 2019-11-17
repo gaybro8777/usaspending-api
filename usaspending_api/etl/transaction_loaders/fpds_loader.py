@@ -37,13 +37,16 @@ from usaspending_api.etl.transaction_loaders.generic_loaders import (
 )
 from usaspending_api.common.helpers.timing_helpers import Timer
 
+# At the time of creating this loader, there are still a lot of orphaned rows, and trying to clear them all would take
+# prohibitively long. This permits the loader to clean just a little bit of this mess at a time for eventual consistency
+GOOD_SAMARITAN_FACTOR = 10000
 
 DESTROY_ORPHANS_LEGAL_ENTITY_SQL = (
     "DELETE FROM legal_entity legal WHERE legal.legal_entity_id in "
     "(SELECT l.legal_entity_id FROM legal_entity l "
     "LEFT JOIN transaction_normalized t ON t.recipient_id = l.legal_entity_id "
     "LEFT JOIN awards a ON a.recipient_id = l.legal_entity_id "
-    "WHERE t is null and a.id is null) "
+    "WHERE t is null and a.id is null limit {}) "
 )
 DESTROY_ORPHANS_REFERENCES_LOCATION_SQL = (
     "DELETE FROM references_location location WHERE location.location_id in "
@@ -51,7 +54,7 @@ DESTROY_ORPHANS_REFERENCES_LOCATION_SQL = (
     "LEFT JOIN transaction_normalized t ON t.place_of_performance_id = l.location_id "
     "LEFT JOIN legal_entity e ON e.location_id = l.location_id "
     "LEFT JOIN awards a ON a.place_of_performance_id = l.location_id "
-    "WHERE t.id is null and a.id is null and e.legal_entity_id is null)"
+    "WHERE t.id is null and a.id is null and e.legal_entity_id is null limit {})"
 )
 
 logger = logging.getLogger("console")
@@ -59,11 +62,11 @@ logger = logging.getLogger("console")
 failed_ids = []
 
 
-def destroy_orphans():
+def destroy_orphans(load_size):
     """cleans up tables after load_ids is called"""
     with connection.cursor() as cursor:
-        cursor.execute(DESTROY_ORPHANS_LEGAL_ENTITY_SQL)
-        cursor.execute(DESTROY_ORPHANS_REFERENCES_LOCATION_SQL)
+        cursor.execute(DESTROY_ORPHANS_LEGAL_ENTITY_SQL.format(load_size + GOOD_SAMARITAN_FACTOR))
+        cursor.execute(DESTROY_ORPHANS_REFERENCES_LOCATION_SQL.format(load_size + GOOD_SAMARITAN_FACTOR))
 
 
 def delete_stale_fpds(date):
