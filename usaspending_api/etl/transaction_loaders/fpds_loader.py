@@ -42,19 +42,23 @@ from usaspending_api.common.helpers.timing_helpers import Timer
 GOOD_SAMARITAN_FACTOR = 10000
 
 DESTROY_ORPHANS_LEGAL_ENTITY_SQL = (
-    "DELETE FROM legal_entity legal WHERE legal.legal_entity_id in "
-    "(SELECT l.legal_entity_id FROM legal_entity l "
-    "LEFT JOIN transaction_normalized t ON t.recipient_id = l.legal_entity_id "
-    "LEFT JOIN awards a ON a.recipient_id = l.legal_entity_id "
-    "WHERE t is null and a.id is null limit {}) "
+    "DELETE "
+    "FROM legal_entity le "
+    "WHERE ( "
+    "NOT EXISTS (SELECT 1 FROM transaction_normalized WHERE recipient_id = le.legal_entity_id) AND "
+    "NOT EXISTS (SELECT 1 FROM awards WHERE recipient_id = le.legal_entity_id) "
+    ") "
+    "LIMIT {}"
 )
 DESTROY_ORPHANS_REFERENCES_LOCATION_SQL = (
-    "DELETE FROM references_location location WHERE location.location_id in "
-    "(SELECT l.location_id FROM references_location l "
-    "LEFT JOIN transaction_normalized t ON t.place_of_performance_id = l.location_id "
-    "LEFT JOIN legal_entity e ON e.location_id = l.location_id "
-    "LEFT JOIN awards a ON a.place_of_performance_id = l.location_id "
-    "WHERE t.id is null and a.id is null and e.legal_entity_id is null limit {})"
+    "DELETE "
+    "FROM references_location rl "
+    "WHERE ( "
+    "NOT EXISTS (SELECT 1 FROM transaction_normalized WHERE place_of_performance_id = rl.location_id) AND "
+    "NOT EXISTS (SELECT 1 FROM awards WHERE place_of_performance_id = rl.location_id) AND "
+    "NOT EXISTS (SELECT 1 FROM legal_entity WHERE location_id = rl.location_id) "
+    ") "
+    "LIMIT {}"
 )
 
 logger = logging.getLogger("console")
