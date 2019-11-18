@@ -40,7 +40,7 @@ DEBUG = False
 ALLOWED_HOSTS = ["*"]
 
 # Define local flag to affect location of downloads
-IS_LOCAL = True
+IS_LOCAL = False
 
 # AWS Region for USAspending Infrastructure
 USASPENDING_AWS_REGION = ""
