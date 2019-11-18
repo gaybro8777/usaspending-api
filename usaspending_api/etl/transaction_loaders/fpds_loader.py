@@ -44,7 +44,8 @@ DESTROY_ORPHANS_LEGAL_ENTITY_SQL = (
 "WHERE ( "
     "NOT EXISTS (SELECT 1 FROM transaction_normalized WHERE recipient_id = le.legal_entity_id) AND "
     "NOT EXISTS (SELECT 1 FROM awards WHERE recipient_id = le.legal_entity_id) "
-");"
+")"
+    "LIMIT {}"
 )
 DESTROY_ORPHANS_REFERENCES_LOCATION_SQL = (
     "DELETE "
@@ -53,7 +54,8 @@ DESTROY_ORPHANS_REFERENCES_LOCATION_SQL = (
     "NOT EXISTS (SELECT 1 FROM transaction_normalized WHERE place_of_performance_id = rl.location_id) AND "
     "NOT EXISTS (SELECT 1 FROM awards WHERE place_of_performance_id = rl.location_id) AND "
     "NOT EXISTS (SELECT 1 FROM legal_entity WHERE location_id = rl.location_id) "
-");"
+") "
+    "LIMIT {}"
 )
 
 logger = logging.getLogger("console")
