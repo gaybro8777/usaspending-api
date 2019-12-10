@@ -19,17 +19,17 @@ class Command(BaseCommand):
         call_command("loaddata", "reference_fixture")
 
         self.logger.info("Loading agency list")
-        call_command("load_agencies", settings.AGENCY_DOWNLOAD_URL)
+        call_command("load_agencies", settings.AGENCY_DOWNLOAD_URL, "--force")
 
         self.logger.info("Loading state data")
         call_command("load_state_data")
 
         # TAS's should only be loaded after agencies to ensure they can properly link to agencies
-        self.logger.info("Loading tas_list.csv")
+        self.logger.info("Loading TAS")
         if settings.IS_LOCAL:
-            call_command("loadtas", "usaspending_api/data/tas_list.csv")
+            call_command("load_tas", location="usaspending_api/data/tas_list.csv")
         else:
-            call_command("loadtas", "gtas-sf133")
+            call_command("load_tas")
 
         self.logger.info("Loading program_activity.csv")
         if settings.IS_LOCAL:
